@@ -48,3 +48,39 @@ int connect_tcp(int sockfd, char *host, int port)
 	//return connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
 	return 0;
 }
+
+int get_so_rcvbuf(int sockfd)
+{
+    int ret_so_rcvbuf;
+    socklen_t len;
+    
+    len = sizeof(ret_so_rcvbuf);
+
+    if(getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &ret_so_rcvbuf, &len) < 0) {
+        warn("cannot get SO_RCVBUF");
+        return -1;
+    }
+
+    return ret_so_rcvbuf;
+}
+
+int set_so_rcvbuf(int sockfd, int so_rcvbuf)
+{
+    socklen_t len;
+    len = sizeof(so_rcvbuf);
+    int ret_so_rcvbuf = 0;
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &so_rcvbuf, len) < 0) {
+        warn("cannot set SO_RCVBUF");
+        return -1;
+    }
+
+    if (getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &ret_so_rcvbuf, &len) < 0) {
+        warn("cannot get SO_RCVBUF");
+        return -1;
+    }
+
+    ret_so_rcvbuf = get_so_rcvbuf(sockfd);
+
+    return ret_so_rcvbuf;
+}
