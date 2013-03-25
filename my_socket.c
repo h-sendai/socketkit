@@ -84,3 +84,50 @@ int set_so_rcvbuf(int sockfd, int so_rcvbuf)
 
     return ret_so_rcvbuf;
 }
+
+int get_so_sndbuf(int sockfd)
+{
+    int ret_so_sndbuf;
+    socklen_t len;
+    
+    len = sizeof(ret_so_sndbuf);
+
+    if(getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &ret_so_sndbuf, &len) < 0) {
+        warn("cannot get SO_SNDBUF");
+        return -1;
+    }
+
+    return ret_so_sndbuf;
+}
+
+int set_so_sndbuf(int sockfd, int so_sndbuf)
+{
+    socklen_t len;
+    len = sizeof(so_sndbuf);
+    int ret_so_sndbuf = 0;
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, len) < 0) {
+        warn("cannot set SO_RCVBUF");
+        return -1;
+    }
+
+    if (getsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &ret_so_sndbuf, &len) < 0) {
+        warn("cannot get SO_SNDBUF");
+        return -1;
+    }
+
+    ret_so_sndbuf = get_so_sndbuf(sockfd);
+
+    return ret_so_sndbuf;
+}
+
+int set_so_nodely(int sockfd)
+{
+    int on = 1;
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY , &on, sizeof(on)) < 0) {
+        warn("setsockopt nodelay");
+        return -1;
+    }
+
+    return 0;
+}

@@ -28,5 +28,8 @@ extern int connect_tcp_timeout(int sockfd, char *host, int port, int timeout);
 extern int get_so_rcvbuf(int sockfd);
 /* set_so_rcvbuf set SO_RCVBUF.  Re-examine the value and returns SO_RCVBUF value */
 extern int set_so_rcvbuf(int sockfd, int so_rcvbuf);
+extern int get_so_sndbuf(int sockfd);
+extern int set_so_sndbuf(int sockfd, int so_sndbuf);
+extern int set_so_nodelay(int sockfd);
 
 #endif
