@@ -10,6 +10,7 @@
 
 #include <arpa/inet.h>   /* inet(3) functions */
 #include <netinet/in.h>  /* sockaddr_in{} and other Internet defns */
+#include <netinet/tcp.h> /* for TCP_NODELAY */
 
 #include <err.h>
 #include <errno.h>

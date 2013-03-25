@@ -121,7 +121,7 @@ int set_so_sndbuf(int sockfd, int so_sndbuf)
     return ret_so_sndbuf;
 }
 
-int set_so_nodely(int sockfd)
+int set_so_nodelay(int sockfd)
 {
     int on = 1;
     if (setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY , &on, sizeof(on)) < 0) {
