@@ -81,6 +81,22 @@ int connect_udp(int sockfd, char *host, int port)
 	return 0;
 }
 
+int my_bind(int sockfd, char *host, int port)
+{
+    struct sockaddr_in addr;
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    inet_pton(AF_INET, host, &addr.sin_addr.s_addr);
+    addr.sin_port = htons(port);
+    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        warn("bind");
+        return -1;
+    }
+
+    return 0;
+}
+
 int get_so_rcvbuf(int sockfd)
 {
     int ret_so_rcvbuf;
