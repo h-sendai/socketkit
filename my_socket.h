@@ -26,6 +26,7 @@ extern int tcp_socket(void);
 extern int udp_socket(void);
 extern int connect_tcp(int sockfd, char *host, int port);
 extern int connect_tcp_timeout(int sockfd, char *host, int port, int timeout);
+extern int connect_udp(int sockfd, char *host, int port);
 extern int get_so_rcvbuf(int sockfd);
 /* set_so_rcvbuf set SO_RCVBUF.  Re-examine the value and returns SO_RCVBUF value */
 extern int set_so_rcvbuf(int sockfd, int so_rcvbuf);
