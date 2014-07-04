@@ -179,3 +179,26 @@ int set_so_nodelay(int sockfd)
 
     return 0;
 }
+
+int get_so_rcvlowat(int sockfd)
+{
+    int size;
+    socklen_t len;
+
+    if (getsockopt(sockfd, SOL_SOCKET, SO_RCVLOWAT , &size, &len) < 0) {
+        warn("getsockopt so_rcvlowat");
+        return -1;
+    }
+
+    return size;
+}
+
+int set_so_rcvlowat(int sockfd, int lowat)
+{
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVLOWAT , &lowat, sizeof(lowat)) < 0) {
+        warn("setsockopt so_rcvlowat");
+        return -1;
+    }
+
+    return 0;
+}
