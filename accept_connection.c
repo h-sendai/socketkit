@@ -42,7 +42,7 @@ int tcp_listen(int port)
 int accept_connection(int port)
 {
     struct sockaddr_in remote_addr;
-    socklen_t addr_len;
+    socklen_t addr_len = sizeof(remote_addr);
 
     int sockfd, listenfd;
 
