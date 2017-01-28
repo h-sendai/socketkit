@@ -16,3 +16,18 @@ int set_timer(long sec, long usec, long sec_interval, long usec_interval)
 
     return 0;
 }
+
+struct timeval float2timeval(double x)
+{
+    struct timeval tv;
+
+    tv.tv_sec = (time_t) x;
+
+    double d = x - tv.tv_sec;
+    d = d*1000000.0;
+
+    tv.tv_sec = (time_t) x;
+    tv.tv_usec = (unsigned int)d;
+
+    return tv;
+}
