@@ -37,4 +37,6 @@ extern int set_so_nodelay(int sockfd);
 extern int get_so_rcvlowat(int sockfd);
 extern int set_so_rcvlowat(int sockfd, int lowat);
 
+extern int tcp_listen(int port);
+extern int accept_connection(int port);
 #endif
