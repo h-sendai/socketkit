@@ -1,107 +1,106 @@
+/*
+Pause frame
++---------+--------+---------+-------+--------------+---------+--------+
+| dest(6) | src(6) | type(2) | op(2) | pausetime(2) | pad(42) | FCS(4) |
++---------+--------+---------+-------+--------------+---------+--------+
+                             |<----- Ethernet Payload ------> |
+dest:      01:80:C2:00:00:01
+type:      0x8808
+op code:   0x0001
+pausetime: 0 - 65535
+*/
+
+/*
+ * MicroMiniHowto: 
+ * Send an arbitrary Ethernet frame using an AF_PACKET socket in C
+ */
+
+/*
+ * 1. Select the required EtherType.
+ * 2. Create the AF_PACKET socket (see packet(7)).
+ * 3. Determine the index number of the Ethernet interface to be used.
+ *    (use interface name such as eth0, eno1, enp0s8 etc.)
+ * 4. Construct the destination address.
+ * 5. Send the Ethernet frame.
+ */
+
 #include "flow_ctrl_pause.h"
 
-static int get_fill(unsigned char *pkt, char *arg, int pause_time)
+/*
+ * 3. Determine the index number of the Ethernet interface to be used.
+ *    (use interface name such as eth0, eno1, enp0s8 etc.)
+ */
+static int get_en_index(int fd, char *if_name)
 {
-    int debug = 0;
-	int sa[6];
-	unsigned char station_addr[6];
-	int byte_cnt;
-	int offset, i;
-	char *cp;
+    struct ifreq ifr; /* netdevice(7) */
 
-	for (cp = arg; *cp; cp++)
-		if (*cp != ':' && !isxdigit(*cp)) {
-			(void)fprintf(stderr,
-						  "flow-ctrl: patterns must be specified as hex digits.\n");
-            return -1;
-		}
-
-	byte_cnt = sscanf(arg, "%2x:%2x:%2x:%2x:%2x:%2x",
-					  &sa[0], &sa[1], &sa[2], &sa[3], &sa[4], &sa[5]);
-	for (i = 0; i < 6; i++)
-		station_addr[i] = sa[i];
-	if (debug)
-		fprintf(stderr, "Command line stations address is "
-				"%2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x.\n",
-				sa[0], sa[1], sa[2], sa[3], sa[4], sa[5]);
-
-	if (byte_cnt != 6) {
-		(void)fprintf(stderr,
-					  "flow-ctrl: The destination address must be specified as "
-					  "00:11:22:33:44:55.\n");
-        return -1;
-	}
-
-	memcpy(pkt, station_addr, 6);
-	memcpy(pkt+6, station_addr, 6);
-	pkt[12] = 0x88;
-	pkt[13] = 0x08;
-	/* MAC control opcode 00:01 */
-	pkt[14] = 0;
-	pkt[15] = 1;
-	pkt[16] = pause_time >> 8;
-	pkt[17] = pause_time;
-
-	offset = 18;
-
-	memset(pkt+offset, 0xff, 42);
-	offset += 42;
-
-	if (debug) {
-		fprintf(stderr, "Packet is\n");
-		for (i = 0; i < offset; i++) {
-			if ((i & 15) == 0)
-				fprintf(stderr, "0x%04x: ", i);
-			fprintf(stderr, "%02x ", pkt[i]);
-			if (((i + 1) & 15) == 0)
-				fprintf(stderr, "\n");
-		}
-		fprintf(stderr, "\n");
-	}
-	return offset;
-}
-
-int flow_ctrl_pause(char *ifname, char *mac_address, int pause_time)
-{
-    unsigned char buf[1024];
-    int sockfd;
-    int pkt_size;
-    struct ifreq if_hwaddr;
-    char *hwaddr;
-    int one = 1;
-    struct sockaddr whereto;
-
-    sockfd = socket(AF_INET, SOCK_PACKET, SOCK_PACKET);
-    if (sockfd < 0) {
-        if (errno == EPERM) {
-            warn("need root privilege");
-        }
-        else {
-            warn("socket");
-        }
+    size_t if_name_len = strlen(if_name);
+    if (if_name_len < sizeof(ifr.ifr_name)) {
+        memcpy(ifr.ifr_name, if_name, if_name_len);
+        ifr.ifr_name[if_name_len] = 0;
+    }
+    else {
+        warnx("interfacename too long: %s", if_name);
         return -1;
     }
     
-    pkt_size = get_fill(buf, mac_address, pause_time);
-
-    //setuid(getuid());
-
-    hwaddr = if_hwaddr.ifr_hwaddr.sa_data;
-    strcpy(if_hwaddr.ifr_name, ifname);
-    if (ioctl(sockfd, SIOCGIFHWADDR, &if_hwaddr) < 0) {
-        warn("ioctl");
-        return -1;
-    }
-    memcpy(buf + 6, if_hwaddr.ifr_hwaddr.sa_data, 6);
-    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (char *) &one, sizeof(one)) < 0) {
-        warn("setsockopt");
+    if (ioctl(fd, SIOCGIFINDEX, &ifr) < 0) {
+        warn("ioctl(fd, SIOCGIFINDEX, &ifr) for %s", if_name);
         return -1;
     }
 
-    whereto.sa_family = 0;
-    strcpy(whereto.sa_data, ifname);
-    if (sendto(sockfd, buf, pkt_size, 0, &whereto, sizeof(whereto)) < 0) {
+    return ifr.ifr_ifindex;
+}
+
+int send_flow_ctrl_pause(char *if_name, int pause_time)
+{
+    int i;
+    
+    if (pause_time < 0 || pause_time > 65535) {
+        warn("too large pause_time: %d", pause_time);
+        return -1;
+    }
+
+    /* 2. Create the AF_PACKET socket (see packet(7)). */
+    int fd = socket(AF_PACKET, SOCK_DGRAM, htons(ETH_P_PAUSE));
+    if (fd < 0) {
+        warn("socket");
+        return -1;
+    }
+
+    /* 3. Determine the index number of the Ethernet interface to be used. */
+    int if_index = get_en_index(fd, if_name);
+    if (if_index < 0) {
+        warnx("cannot get if_index for %s", if_name);
+        return -1;
+    }
+    
+    /* 4. Construct the destination address */
+    unsigned char ether_pause_addr[] = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x01 };
+    struct sockaddr_ll addr = { 0 };
+    addr.sll_family   = AF_PACKET;
+    addr.sll_ifindex  = if_index;
+    addr.sll_halen    = ETHER_ADDR_LEN;
+    addr.sll_protocol = htons(ETH_P_PAUSE);
+    memcpy(addr.sll_addr, ether_pause_addr, ETHER_ADDR_LEN);
+
+    unsigned char en_payload[46];
+    en_payload[0] = 0x00;
+    en_payload[1] = 0x01;
+    en_payload[2] = pause_time >> 8;
+    en_payload[3] = pause_time;
+    for (i = 4; i < 46; ++i) {
+        en_payload[i] = 0xff; /* padding */
+    }
+
+    /* 5. Send the Ethernet frame. */
+    if (sendto(fd, en_payload, sizeof(en_payload), 0, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         warn("sendto");
+        return -1;
+    }
+
+    if (close(fd) < 0) {
+        warn("close");
         return -1;
     }
 
@@ -109,34 +108,26 @@ int flow_ctrl_pause(char *ifname, char *mac_address, int pause_time)
 }
 
 #ifdef USE_MAIN
-int usage()
-{
-    char msg[] = "Usage: ./flow_ctrl_pause if_name pause_time(max 65535)";
-    fprintf(stderr, "%s\n", msg);
-
-    return 0;
-}
-
 int main(int argc, char *argv[])
 {
     char *if_name;
     int pause_time;
 
     if (argc != 3) {
-        usage();
+        fprintf(stderr, "Usage: sample if_name pause_time (0 - 65535)\n");
         exit(1);
     }
-
-    if_name = argv[1];
+    if_name    = argv[1];
     pause_time = strtol(argv[2], NULL, 0);
-    if (pause_time < 0 || pause_time > 65536) {
-        fprintf(stderr, "pause time too large: %ld (max 65535)\n", (long) pause_time);
+
+    uid_t uid = geteuid();
+    if (uid != 0) {
+        fprintf(stderr, "root priv. required.  Use sudo or su\n");
         exit(1);
     }
 
-    fprintf(stderr, "if_name: %s pause_time: %ld\n", if_name, (long) pause_time);
-    if (flow_ctrl_pause(if_name, "01:80:c2:00:00:01", pause_time) < 0) {
-        errx(1, "flow_ctrl_pause() error");
+    if (send_flow_ctrl_pause(if_name, pause_time) < 0) {
+        fprintf(stderr, "flow_ctrl_pause() error\n");
     }
 
     return 0;
