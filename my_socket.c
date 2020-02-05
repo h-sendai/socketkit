@@ -10,33 +10,45 @@ int udp_socket(void)
 	return socket(AF_INET, SOCK_DGRAM, 0);
 }
 
-int connect_tcp_timeout(int sockfd, char *ip_address, int port, int timeout_sec)
+int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
 {
-    /* using SO_SNDTIMEO for connect() with timeout
-       Linux only */
-
-    struct sockaddr_in servaddr;
+	struct sockaddr_in servaddr;
+	struct sockaddr_in *resaddr;
+	struct addrinfo    hints;
+	struct addrinfo    *res;
+	int err;
     struct timeval tm_out;
 
-    bzero(&servaddr, sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port   = htons(port);
-    if (inet_aton(ip_address,  &servaddr.sin_addr) == 0) {
-        warnx("IP address invalid");
-        return -1;
-    }
+	res = 0;
+	memset((char *)&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 0;
+	if ( (err = getaddrinfo(host, 0, &hints, &res)) != 0) {
+		return -1;
+	}
+
+	resaddr = (struct sockaddr_in *)res->ai_addr;
+	memset((char *)&servaddr, 0, sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_port   = htons(port);
+	servaddr.sin_addr   = resaddr->sin_addr;
+	freeaddrinfo(res);
+
     tm_out.tv_sec  = timeout_sec;
     tm_out.tv_usec = 0;
+
     if (setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &tm_out, sizeof(tm_out)) < 0) {
         warnx("socket SO_SNDTIMEO timeout set fail");
         return -1;
     }
     if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-        warnx("connect");
+        /* warn("connect"); */
         errno = ETIMEDOUT;
         return -1;
     }
-    return 0;
+
+	return 0;
 }
 
 /* from kolc */
