@@ -262,3 +262,15 @@ int accept_connection(int port)
 
     return sockfd;
 }
+
+int get_port_num(int sockfd)
+{
+    struct sockaddr_in myaddr;
+    socklen_t len = sizeof(myaddr);
+    if (getsockname(sockfd, (struct sockaddr *)&myaddr, &len) < 0) {
+        warn("getsockname");
+        return -1;
+    }
+
+    return ntohs(myaddr.sin_port);
+}

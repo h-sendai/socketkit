@@ -39,4 +39,6 @@ extern int set_so_rcvlowat(int sockfd, int lowat);
 
 extern int tcp_listen(int port);
 extern int accept_connection(int port);
+
+extern int get_port_num(int sockfd);
 #endif
