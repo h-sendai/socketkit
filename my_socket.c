@@ -10,10 +10,33 @@ int udp_socket(void)
 	return socket(AF_INET, SOCK_DGRAM, 0);
 }
 
-int connect_tcp_timeout(int sockfd, char *ip_address, int port, int timeout)
+int connect_tcp_timeout(int sockfd, char *ip_address, int port, int timeout_sec)
 {
-	fprintf(stderr, "not yet implement\n");
-	exit(1);
+    /* using SO_SNDTIMEO for connect() with timeout
+       Linux only */
+
+    struct sockaddr_in servaddr;
+    struct timeval tm_out;
+
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port   = htons(port);
+    if (inet_aton(ip_address,  &servaddr.sin_addr) == 0) {
+        warnx("IP address invalid");
+        return -1;
+    }
+    tm_out.tv_sec  = timeout_sec;
+    tm_out.tv_usec = 0;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &tm_out, sizeof(tm_out)) < 0) {
+        warnx("socket SO_SNDTIMEO timeout set fail");
+        return -1;
+    }
+    if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+        warnx("connect");
+        errno = ETIMEDOUT;
+        return -1;
+    }
+    return 0;
 }
 
 /* from kolc */
