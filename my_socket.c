@@ -17,7 +17,14 @@ int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
 	struct addrinfo    hints;
 	struct addrinfo    *res;
 	int err;
-    struct timeval tm_out;
+    struct timeval tm_out, orig_tm_out;
+    socklen_t len;
+
+    len = sizeof(orig_tm_out);
+    if (getsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &orig_tm_out, &len) < 0) {
+        warn("getsockopt() for restore SO_SNDTIMEO");
+        return -1;
+    }
 
 	res = 0;
 	memset((char *)&hints, 0, sizeof(hints));
@@ -44,7 +51,16 @@ int connect_tcp_timeout(int sockfd, char *host, int port, int timeout_sec)
     }
     if (connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
         /* warn("connect"); */
+        if (setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &orig_tm_out, sizeof(orig_tm_out)) < 0) {
+            warn("setsockopt to restore SO_SNDTIMEO");
+        }
         errno = ETIMEDOUT;
+        return -1;
+    }
+
+    /* restore SO_SNDTIMEO */
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &orig_tm_out, sizeof(orig_tm_out)) < 0) {
+        warn("setsockopt to restore SO_SNDTIMEO");
         return -1;
     }
 
