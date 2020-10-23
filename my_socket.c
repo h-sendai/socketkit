@@ -134,6 +134,8 @@ int connect_udp(int sockfd, char *host, int port)
 
 int my_bind(int sockfd, char *host, int port)
 {
+    /* specify host "0.0.0.0" to specify INADDR_ANY */
+
     struct sockaddr_in addr;
 
     memset(&addr, 0, sizeof(addr));
