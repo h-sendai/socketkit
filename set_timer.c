@@ -41,3 +41,11 @@ struct timeval str2timeval(char *str)
 
     return tv;
 }
+
+useconds_t str2useconds(char *str)
+{
+    struct timeval tv;
+    tv = str2timeval(str);
+
+    return 1000000*tv.tv_sec + tv.tv_usec;
+}
