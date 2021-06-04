@@ -28,6 +28,7 @@ extern host_info *new_host(char *host_and_port);
 extern host_info *addfront(host_info *host_list, host_info *newp);
 extern host_info *addend(host_info *host_list, host_info *newp);
 extern int        connect_to_server(host_info *host_info, int timeout);
+extern int        dump_host_info(host_info *host_list);
 
 extern int debug;
 #endif

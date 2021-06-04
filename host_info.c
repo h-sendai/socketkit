@@ -81,3 +81,13 @@ int connect_to_server(host_info *p, int timeout)
 	}
 	return 0;
 }
+
+int dump_host_info(host_info *host_list)
+{
+    host_info *p;
+    for (p = host_list; p != NULL; p = p->next) {
+        printf("ip_address: %s port: %d\n", p->ip_address, p->port);
+    }
+
+    return 0;
+}
