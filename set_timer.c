@@ -49,3 +49,15 @@ useconds_t str2useconds(char *str)
 
     return 1000000*tv.tv_sec + tv.tv_usec;
 }
+
+int wait_alarm()
+{
+    sigset_t set;
+    int sig;
+
+    sigemptyset(&set);
+    sigaddset(&set, SIGALRM);
+    sigwait(&set, &sig);
+
+    return 0;
+}
