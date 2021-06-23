@@ -229,6 +229,16 @@ int set_so_sndbuf(int sockfd, int so_sndbuf)
     return ret_so_sndbuf;
 }
 
+int get_bytes_in_rcvbuf(int sockfd)
+{
+    int nbytes;
+    if (ioctl(sockfd, FIONREAD, &nbytes) < 0) {
+        warn("ioctl(sockfd, FIONREAD, &nbytes)");
+    }
+
+    return nbytes;
+}
+
 int set_so_nodelay(int sockfd)
 {
     int on = 1;
