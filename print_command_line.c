@@ -11,20 +11,20 @@
 #include <time.h>
 #include <unistd.h>
 
-int print_command_line(int argc, char *argv[])
+int print_command_line(FILE *fp, int argc, char *argv[])
 {
     printf("#");
 
     for (int i = 0; i < argc; ++i) {
         if (strchr(argv[i], ' ') == NULL) {
-            printf(" %s", argv[i]);
+            fprintf(fp, " %s", argv[i]);
         }
         else {
-            printf(" \"%s\"", argv[i]);
+            fprintf(fp, " \"%s\"", argv[i]);
         }
     }
 
-    printf("\n");
+    fprintf(fp, "\n");
     
     return 0;
 }
