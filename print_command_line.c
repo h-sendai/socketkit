@@ -13,7 +13,7 @@
 
 int print_command_line(FILE *fp, int argc, char *argv[])
 {
-    printf("#");
+    fprintf(fp, "#");
 
     for (int i = 0; i < argc; ++i) {
         if (strchr(argv[i], ' ') == NULL) {
