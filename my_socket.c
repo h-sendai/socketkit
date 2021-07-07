@@ -250,6 +250,17 @@ int set_so_nodelay(int sockfd)
     return 0;
 }
 
+int set_so_quickack(int sockfd)
+{
+    int on = 1;
+    if (setsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK , &on, sizeof(on)) < 0) {
+        warn("setsockopt quickack");
+        return -1;
+    }
+
+    return 0;
+}
+
 int get_so_rcvlowat(int sockfd)
 {
     int size;
