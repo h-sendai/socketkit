@@ -187,7 +187,7 @@ int set_so_rcvbuf(int sockfd, int so_rcvbuf)
 #else
     if (ret_so_rcvbuf != so_rcvbuf) {
 #endif
-        warnx("cannot set to %d bytes, but set %d bytes", so_rcvbuf, ret_so_rcvbuf);
+        warnx("cannot set SO_RCVBUF to %d bytes, but set %d bytes", so_rcvbuf, ret_so_rcvbuf);
         return -1;
     }
 
@@ -226,6 +226,14 @@ int set_so_sndbuf(int sockfd, int so_sndbuf)
     }
 
     ret_so_sndbuf = get_so_sndbuf(sockfd);
+#ifdef __linux__
+    if (ret_so_sndbuf != (2*so_sndbuf)) {
+#else
+    if (ret_so_sndbuf != so_sndbuf) {
+#endif
+        warnx("cannot set SO_SNDBUF to %d bytes, but set %d bytes", so_sndbuf, ret_so_sndbuf);
+        return -1;
+    }
 
     return ret_so_sndbuf;
 }
