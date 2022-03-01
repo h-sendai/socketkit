@@ -8,6 +8,34 @@
  * }
  */
 
+int fill_sockaddr_in(char *if_name, struct sockaddr_in *sa)
+{
+    int fd;
+    struct ifreq ifr;
+    memset(&ifr, 0, sizeof(ifr));
+
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        warn("socket");
+        return -1;
+    }
+
+    ifr.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr.ifr_name, if_name, IFNAMSIZ - 1);
+
+    if (ioctl(fd, SIOCGIFADDR, &ifr) < 0) {
+        warn("ioctl(fd, SIOCGIFADDR, &ifr)");
+        return -1;
+    }
+
+    close(fd);
+
+    struct sockaddr_in *rv = (struct sockaddr_in *)&ifr.ifr_addr;
+    memcpy(sa, rv, sizeof(struct sockaddr_in));
+
+    return 0;
+}
+
 int fill_mac_address(char *if_name, struct ether_addr *ether_addr)
 {
     int fd;
@@ -55,6 +83,9 @@ int main(int argc, char *argv[])
     }
     printf("%s\n", ether_ntoa(&my_mac_address));
 
+    struct sockaddr_in sa;
+    fill_sockaddr_in(if_name, &sa);
+    printf("%s\n", inet_ntoa(sa.sin_addr));
     return 0;
 }
 

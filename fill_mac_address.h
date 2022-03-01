@@ -11,6 +11,7 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/ether.h> /* ether_ntoa() */
+#include <arpa/inet.h>
 
 #include <err.h>
 #include <errno.h>
@@ -40,4 +41,5 @@
  */
 
 extern int fill_mac_address(char *if_name, struct ether_addr *my_mac_address);
+extern int fill_sockaddr_in(char *if_name, struct sockaddr_in *sa);
 #endif
