@@ -274,6 +274,19 @@ int set_so_nodelay(int sockfd)
 }
 
 #ifdef __linux__
+int get_so_quickack(int sockfd)
+{
+    int value;
+    socklen_t len = sizeof(value);
+
+    if (getsockopt(sockfd, IPPROTO_TCP, TCP_QUICKACK , &value, &len) < 0) {
+        warn("getsockopt quickack");
+        return -1;
+    }
+
+    return value;
+}
+
 int set_so_quickack(int sockfd)
 {
     int on = 1;
