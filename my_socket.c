@@ -302,7 +302,7 @@ int set_so_quickack(int sockfd)
 int get_so_rcvlowat(int sockfd)
 {
     int size;
-    socklen_t len;
+    socklen_t len = sizeof(size);
 
     if (getsockopt(sockfd, SOL_SOCKET, SO_RCVLOWAT , &size, &len) < 0) {
         warn("getsockopt so_rcvlowat");
