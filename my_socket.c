@@ -404,3 +404,13 @@ int set_so_rcvtimeout(int sockfd, long tv_sec, long tv_usec)
     return 0;
 }
 
+int get_tcp_info(int sockfd, struct tcp_info *my_tcp_info)
+{
+    socklen_t tcp_info_size = sizeof(struct tcp_info);
+    if (getsockopt(sockfd, IPPROTO_TCP, TCP_INFO, my_tcp_info, &tcp_info_size) < 0) {
+        warn("getsockopt TCP_INFO");
+        return -1;
+    }
+
+    return 0;
+}
