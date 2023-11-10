@@ -59,7 +59,7 @@ uintmax_t get_num(const char *val)
 		//err(1, "%s", oper);
 	
 	if (expr == val)			/* No valid digits. */
-		errx(1, "illegal numeric value");
+		errx(1, "get_num(): illegal numeric value");
 		//errx(1, "%s: illegal numeric value", oper);
 
 	mult = 0;
@@ -112,7 +112,7 @@ erange:
 			errx(1, "%s", strerror(ERANGE));
 			//errx(1, "%s: %s", oper, strerror(ERANGE));
 		default:
-			errx(1, "illegal numeric value");
+			errx(1, "get_num(): illegal numeric value");
 			//errx(1, "%s: illegal numeric value", oper);
 	}
 	return (num);
