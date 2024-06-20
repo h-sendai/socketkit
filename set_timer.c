@@ -152,3 +152,52 @@ int conv_str2timeval(char *str, struct timeval *result)
 
     return 0;
 }
+
+int conv_str2timespec(char *str, struct timespec *result)
+{
+    struct timespec tv;
+    time_t t;
+    char *cp;
+    int i;
+
+    //timespecclear(&tv);
+    tv.tv_sec        = 0;
+    tv.tv_nsec       = 0;
+
+    /* Handle whole seconds. */
+    for (cp = str; *cp != '\0' && *cp != '.'; cp++) {
+        if (!isdigit((unsigned char)*cp)) {
+            warnx("seconds is invalid: %s", str);
+            return -1;
+        }
+        t = (tv.tv_sec * 10) + (*cp - '0');
+        if (t / 10 != tv.tv_sec) {   /* overflow */
+            warnx("seconds is too large: %s", str);
+            return -1;
+        }
+
+        tv.tv_sec = t;
+    }
+
+    /*
+     * Handle fractions of a second.  The multiplier divides to zero
+     * after nine digits so anything more precise than a microsecond is
+     * validated but not used.
+     */
+    if (*cp == '.') {
+        i = 100000000;
+        for (cp++; *cp != '\0'; cp++) {
+            if (!isdigit((unsigned char)*cp)) {
+                warnx("seconds is invalid: %s", str);
+                return -1;
+            }
+            tv.tv_nsec += (*cp - '0') * i;
+            i /= 10;
+        }
+    }
+
+    result->tv_sec  = tv.tv_sec;
+    result->tv_nsec = tv.tv_nsec;
+
+    return 0;
+}

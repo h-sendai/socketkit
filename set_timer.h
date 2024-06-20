@@ -13,6 +13,7 @@ extern int set_timer(long sec, long usec, long sec_interval, long usec_interval)
 extern struct timeval float2timeval(double x);
 extern struct timeval str2timeval(char *str);
 extern int conv_str2timeval(char *str, struct timeval *result);
+extern int conv_str2timespec(char *str, struct timespec *result);
 extern useconds_t str2useconds(char *str);
 extern int wait_alarm();
 #endif
