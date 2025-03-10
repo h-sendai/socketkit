@@ -414,3 +414,24 @@ int get_tcp_info(int sockfd, struct tcp_info *my_tcp_info)
 
     return 0;
 }
+
+struct sockaddr_in get_sockaddr_in(char *host, char *port, int sock_type)
+{
+    struct addrinfo hints, *result;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = sock_type;
+    hints.ai_flags    = 0;
+    hints.ai_protocol = 0;
+
+    int s = getaddrinfo(host, port, &hints, &result);
+    if (s != 0) {
+        errx(1, "getaddrinfo: %s", gai_strerror(s));
+    }
+
+    struct sockaddr_in addr = *(struct sockaddr_in*)(result->ai_addr);
+
+    freeaddrinfo(result);
+
+    return addr;
+}

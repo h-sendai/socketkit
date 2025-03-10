@@ -53,4 +53,7 @@ extern int accept_connection(int port);
 extern int get_port_num(int sockfd);
 /* convert MiB (1024 base) to Giga (1000 base) bit */
 extern double MiB2Gb(double x);
+
+/* sock_type: SOCK_STREAM, SOCK_DGRAM etc. */
+extern struct sockaddr_in get_sockaddr_in(char *host, char *port, int sock_type);
 #endif
